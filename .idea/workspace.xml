@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ab5127fe-e2c6-4e55-8ca8-04b827568e7e" name="Changes" comment="" />
+    <list default="true" id="ab5127fe-e2c6-4e55-8ca8-04b827568e7e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_rebase_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Dov.sol" beforeDir="false" afterPath="$PROJECT_DIR$/src/Dov.sol" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -54,6 +57,7 @@
       <updated>1696424748916</updated>
       <workItem from="1696424749941" duration="18141000" />
       <workItem from="1696565033690" duration="659000" />
+      <workItem from="1697204586632" duration="294000" />
     </task>
     <servers />
   </component>

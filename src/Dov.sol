@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ERC721} from "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
+import {ERC721Burnable} from "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {Clones} from "openzeppelin-contracts//contracts/proxy/Clones.sol";
@@ -16,6 +17,7 @@ import {DovReceiptERC20} from "./DovReceiptERC20.sol";
 // 기본적으로 PUT 옵션
 contract Dov is
     ERC721,
+    ERC721Burnable,
     AccessControl,
     DovState
 {
@@ -98,10 +100,26 @@ contract Dov is
         }
     }
 
+    // 옵션 만기 설정, 행사가 설정
+    function expire(
+        uint256 _settlementPrice
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        // 한번만 만기 설정을 할 수 있고, 만기 전에는 만기 설정을 할 수 없음.
+        // TODO: 테스트용으로 배포할때는 언제든 만기설정을 할 수 있도록 수정
+        _roundNotExpired();
+        require(block.timestamp > roundData[currentRound].expiry, "Optoin Not Expired Yet");
+        
+        // 만기 설정
+        roundData[currentRound].expired = true;
+        roundData[currentRound].settlementPrice = _settlementPrice;
+
+
+    }
+
     /* User functions */
     // 옵션 매도 함수
     function deposit(
-        uint strikeIndex,
+        uint _strikeIndex,
         uint amount,
         address to
     ) external returns (uint tokenId) {
@@ -110,7 +128,7 @@ contract Dov is
         _isEligible();
         _valueNotZero(amount);
 
-        uint strike = roundData[currentRound].strikes[strikeIndex];
+        uint strike = roundData[currentRound].strikes[_strikeIndex];
         _valueNotZero(strike);
 
         // 옵션 매도자로부터 담보 입금
@@ -118,7 +136,7 @@ contract Dov is
 
         // roundData, roundStrikeData 업데이트
         roundData[currentRound].totalCollateralBalance += amount;
-        roundStrikeData[currentRound][strikeIndex].totalCollateral += amount;
+        roundStrikeData[currentRound][_strikeIndex].totalCollateral += amount;
 
         // 포지션 영수증 발급 (ERC-721)
         tokenId = _counter;
@@ -129,7 +147,8 @@ contract Dov is
         writePositions[tokenId] = WritePosition({
             round: currentRound,
             strike: strike,
-            collateralAmount: amount
+            collateralAmount: amount,
+            strikeIndex: _strikeIndex
         });
     }
 
@@ -176,11 +195,51 @@ contract Dov is
             to,
             amount
         );
+    }
 
+    function withdraw(uint tokenId, address to) external returns(uint256 collateral){
+        _isEligible();
+        _roundExpired();
+        
+        uint round = writePositions[tokenId].round;
+        uint strike = writePositions[tokenId].strike;
+        uint strikeIndex = writePositions[tokenId].strikeIndex;
+        uint collateralAmount = writePositions[tokenId].collateralAmount;
+
+        
+        uint settlementPrice = roundData[round].settlementPrice;
+        uint expiry = roundData[round].expiry;
+        
+        // 혹시나 모를 행사가가 설정되기 전에 옵션 매수를 했을 경우 대비
+        _valueNotZero(strike);
+        // 혹시나 모를 행사가가 설정되지 않았을 경우를 대비
+        _valueNotZero(settlementPrice);
+        // 혹시나 모를 만기 전에 withdraw를 호출하는 경우를 대비
+        _validate(block.timestamp > expiry) ;
+
+        uint totalCollateral = roundStrikeData[round][strikeIndex].totalCollateral;
+        uint totalPremium = roundStrikeData[round][strikeIndex].totalPremium;
+        
+        // 포지션에 대한 NFT를 소각, 내부 로직에 msg.sender가 해당 NFT소유자인지 검증하는 로직이 존재
+        burn(tokenId);
+
+        // 옵션 매도자의 손익 계산
+        // 옵션 매도자들이 예치한 총 담보금: totalCollateral - totalPremium
+        // withdraw를 호출한 매도자의 지분: collateralAmount / (totalCollateral - totalPremium)
+        // 옵션 매도자가 최종적으로 정산받는 금액: totalCollateral * 지분
+        uint share = collateralAmount * 1e18 / (totalCollateral - totalPremium) / 1e18;
+        uint PnL = totalCollateral * share;
+
+        // 매도자의 PnL송금
+        collateralToken.transfer(to, PnL);
     }
 
 
     /* Validation functions */
+    function _roundExpired() internal {
+        require(roundData[currentRound].expired, "DOV: round not expired");
+    }
+    
     function _optionPriceSet(uint strikeIndex) internal {
         require(roundStrikeData[currentRound][strikeIndex].optionPrice != 0, "DOV: strike not active");
     }

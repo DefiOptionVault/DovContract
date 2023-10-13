@@ -37,4 +37,6 @@ pragma solidity ^0.8.0;
         uint256 strike;
         // 얼마나 매도했는지
         uint256 collateralAmount;
+        // 행사가의 index정보
+        uint256 strikeIndex;
     }
