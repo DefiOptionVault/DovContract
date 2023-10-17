@@ -13,6 +13,8 @@ import {RoundData, RoundStrikeData, WritePosition} from "./DovStruct.sol";
 import {DovState} from "./DovState.sol";
 import {DovReceiptERC20} from "./DovReceiptERC20.sol";
 
+import "forge-std/Test.sol";
+
 
 // 기본적으로 PUT 옵션
 contract Dov is
@@ -132,7 +134,7 @@ contract Dov is
         _valueNotZero(strike);
 
         // 옵션 매도자로부터 담보 입금
-        collateralToken.transferFrom(msg.sender, address(this), amount);
+        collateralToken.transferFrom(msg.sender, address(this), amount * 1e6 / 1e18);
 
         // roundData, roundStrikeData 업데이트
         roundData[currentRound].totalCollateralBalance += amount;
@@ -177,12 +179,13 @@ contract Dov is
         // lock해야 하는 금액의 양 (PUT)
         // 옵션 매수자의 max profit: strike * amount
         // round down발생 가능..
-        uint toLockCollateral = strike * amount * COLLATERAL_PRECISION / UNDERLYING_PRECISION / DEFAULT_PRECISION;
+        uint toLockCollateral = (strike * amount) / UNDERLYING_PRECISION;
+        
         require(availableCollateral > toLockCollateral, "DOV: not enough collateral");
 
         // premium 입금
         premium = roundStrikeData[currentRound][strikeIndex].optionPrice * amount / DEFAULT_PRECISION;
-        collateralToken.transferFrom(msg.sender, address(this), premium);
+        collateralToken.transferFrom(msg.sender, address(this), premium * 1e6 / 1e18);
 
         // roundStrikeData 업데이트
         roundStrikeData[currentRound][strikeIndex].totalPremium += premium;
@@ -197,62 +200,95 @@ contract Dov is
         );
     }
 
-    function withdraw(uint tokenId, address to) external returns(uint256 collateral){
+    function withdraw(
+        uint tokenId, 
+        address to
+    ) external returns(uint256 writerPnl){
         _isEligible();
-        _roundExpired();
         
         uint round = writePositions[tokenId].round;
-        uint strike = writePositions[tokenId].strike;
+        uint strikePrice = writePositions[tokenId].strike;
         uint strikeIndex = writePositions[tokenId].strikeIndex;
         uint collateralAmount = writePositions[tokenId].collateralAmount;
-
         
         uint settlementPrice = roundData[round].settlementPrice;
         uint expiry = roundData[round].expiry;
-        
-        // 혹시나 모를 행사가가 설정되기 전에 옵션 매수를 했을 경우 대비
-        _valueNotZero(strike);
-        // 혹시나 모를 행사가가 설정되지 않았을 경우를 대비
-        _valueNotZero(settlementPrice);
-        // 혹시나 모를 만기 전에 withdraw를 호출하는 경우를 대비
-        _validate(block.timestamp > expiry) ;
 
         uint totalCollateral = roundStrikeData[round][strikeIndex].totalCollateral;
         uint totalPremium = roundStrikeData[round][strikeIndex].totalPremium;
+        uint activeCollateral = roundStrikeData[round][strikeIndex].activeCollateral;
+        
+        // 올바른 상황에 withdraw가 되고 있는지 validate
+        _roundExpired(round);
+        _valueNotZero(strikePrice);
+        _valueNotZero(settlementPrice);
+        _validate(block.timestamp > expiry) ;
         
         // 포지션에 대한 NFT를 소각, 내부 로직에 msg.sender가 해당 NFT소유자인지 검증하는 로직이 존재
         burn(tokenId);
 
-        // 옵션 매도자의 손익 계산
-        // 옵션 매도자들이 예치한 총 담보금: totalCollateral - totalPremium
-        // withdraw를 호출한 매도자의 지분: collateralAmount / (totalCollateral - totalPremium)
-        // 옵션 매도자가 최종적으로 정산받는 금액: totalCollateral * 지분
-        uint share = collateralAmount * 1e18 / (totalCollateral - totalPremium) / 1e18;
-        uint PnL = totalCollateral * share;
+        uint share = collateralAmount * 1e18 / (totalCollateral - (totalPremium));
+        uint buyerPnl = 0;
+
+        if (settlementPrice < strikePrice) {
+            uint amount = activeCollateral *  UNDERLYING_PRECISION / strikePrice;
+            buyerPnl = (strikePrice - settlementPrice) * amount / 1e18;
+        }
 
         // 매도자의 PnL송금
-        collateralToken.transfer(to, PnL);
+        writerPnl = (totalCollateral - buyerPnl) * share / 1e18 / 1e12;
+        collateralToken.transfer(to, writerPnl);
+    }
+
+    function settle(
+        uint strikeIndex,
+        uint amount,
+        uint round,
+        address to
+    ) external returns (uint pnl) {
+        _isEligible();
+        _roundExpired(round);
+
+        uint strikePrice = roundData[round].strikes[strikeIndex];
+        DovReceiptERC20 strikeToken = DovReceiptERC20(
+            roundStrikeData[round][strikeIndex].purchaseReceipt
+        );
+
+        // msg.sender가 amount만큼을 매수했는지 확인 및 소각
+        _validate(strikeToken.balanceOf(msg.sender) >= amount);
+        strikeToken.burnFrom(msg.sender, amount);
+
+        // PUT옵션 기준
+        uint settlementPrice = roundData[round].settlementPrice;
+        require(settlementPrice < strikePrice, "DOV: Your pnl is 0");
+
+        pnl = (strikePrice - settlementPrice) * amount / 1e18;
+        collateralToken.transfer(to, pnl / 1e12);
     }
 
 
     /* Validation functions */
-    function _roundExpired() internal {
+    function _roundExpired(uint round) internal view {
+        require(roundData[round].expired, "DOV: round not expired");
+    }
+
+    function _roundExpired() internal view {
         require(roundData[currentRound].expired, "DOV: round not expired");
     }
     
-    function _optionPriceSet(uint strikeIndex) internal {
+    function _optionPriceSet(uint strikeIndex) internal view {
         require(roundStrikeData[currentRound][strikeIndex].optionPrice != 0, "DOV: strike not active");
     }
 
-    function _valueNotZero(uint value) internal {
+    function _valueNotZero(uint value) internal view {
         require(value > 0, "DOV: value must greater than 0");
     }
 
-    function _roundNotExpired() internal {
+    function _roundNotExpired() internal view {
         require(!roundData[currentRound].expired, "DOV: round expired");
     }
 
-    function _isEligible() internal {
+    function _isEligible() internal view {
         require(msg.sender == tx.origin, "DOV: This contract only interact with EOA");
     }
 
