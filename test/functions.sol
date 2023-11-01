@@ -5,10 +5,11 @@ import "forge-std/Test.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
 import "../src/Dov.sol";
+import "../src/DovForTest.sol";
 import {RoundData, RoundStrikeData, WritePosition} from "../src/DovStruct.sol";
 
 contract Functions is Test{
-    Dov public dov;
+    DovForTest public dov;
     DovReceiptERC20 public implementation;
 
     // USDC 주소
@@ -32,9 +33,9 @@ contract Functions is Test{
 
 
     function setUp() public {
-        dov = new Dov(
+        dov = new DovForTest(
             "Dov Weekly ETH Put Option",
-            "DOV-WEEK-ETH-PUT",
+            "WEEKLY-ETH-PUT",
             underlyingSymbol,
             collateralSymbol,
             address(USDC)
@@ -123,7 +124,7 @@ contract Functions is Test{
         _round1();
         uint expiry = dov.getRoundData(1).expiry;    
         // 만기날로 이동
-        vm.warp(expiry + 1);
+        //vm.warp(expiry + 1);
         dov.expire(settlementPrice);
     }
 
