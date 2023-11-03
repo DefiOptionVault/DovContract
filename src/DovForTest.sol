@@ -17,6 +17,11 @@ import "forge-std/Test.sol";
 
 
 // 기본적으로 PUT 옵션
+// name: WEEKLY PUT ETH
+// symbol: WEEKLY PUT ETH 
+// underlyingSymbol: ETH
+// collateralSymbol: USDC
+// collateralToken: 0xe059aA96255990826D0d62c62462Feea47AF82a7
 contract DovForTest is
     ERC721,
     ERC721Burnable,
@@ -321,3 +326,4 @@ contract DovForTest is
         return super.supportsInterface(interfaceId);
     }
 }
+//0xC1f89aE003F0264792C3Cf985c3bCAA8c1C7b3C0
