@@ -5,8 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ab5127fe-e2c6-4e55-8ca8-04b827568e7e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_rebase_[Changes]/shelved.patch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Dov.sol" beforeDir="false" afterPath="$PROJECT_DIR$/src/Dov.sol" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/DovForTest.sol" beforeDir="false" afterPath="$PROJECT_DIR$/src/DovForTest.sol" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/DovReceiptERC20.sol" beforeDir="false" afterPath="$PROJECT_DIR$/src/DovReceiptERC20.sol" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/DovState.sol" beforeDir="false" afterPath="$PROJECT_DIR$/src/DovState.sol" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,7 +40,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/junan/blockchain/dovContract&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/junan/blockchain/sejong3-2/dovContract&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -58,6 +60,9 @@
       <workItem from="1696424749941" duration="18141000" />
       <workItem from="1696565033690" duration="659000" />
       <workItem from="1697204586632" duration="294000" />
+      <workItem from="1699803045047" duration="339000" />
+      <workItem from="1699854430506" duration="2000" />
+      <workItem from="1699967249230" duration="164000" />
     </task>
     <servers />
   </component>

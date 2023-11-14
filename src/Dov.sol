@@ -184,7 +184,7 @@ contract Dov is
         require(availableCollateral > toLockCollateral, "DOV: not enough collateral");
 
         // premium 입금
-        premium = roundStrikeData[currentRound][strikeIndex].optionPrice * amount / DEFAULT_PRECISION;
+        premium = _calculatePremium(roundStrikeData[currentRound][strikeIndex].optionPrice, amount);
         collateralToken.transferFrom(msg.sender, address(this), premium * 1e6 / 1e18);
 
         // roundStrikeData 업데이트
@@ -297,6 +297,9 @@ contract Dov is
         require(_condition, "DOV: condition doesn't match");
     }
 
+    function _calculatePremium(uint optionPrice, uint amount) public view returns(uint premium) {
+        premium = optionPrice * amount / DEFAULT_PRECISION;
+    }
 
     /* Status functions */
     function getRoundData(uint round) external view returns(RoundData memory) {

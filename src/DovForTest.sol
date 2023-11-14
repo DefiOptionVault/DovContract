@@ -6,14 +6,14 @@ import {ERC721Burnable} from "openzeppelin-contracts/contracts/token/ERC721/exte
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {Clones} from "openzeppelin-contracts//contracts/proxy/Clones.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 
 import {RoundData, RoundStrikeData, WritePosition} from "./DovStruct.sol";
 import {DovState} from "./DovState.sol";
 import {DovReceiptERC20} from "./DovReceiptERC20.sol";
 
-import "forge-std/Test.sol";
+//import "forge-std/Test.sol";
 
 
 // 기본적으로 PUT 옵션
@@ -192,7 +192,7 @@ contract DovForTest is
         require(availableCollateral > toLockCollateral, "DOV: not enough collateral");
 
         // premium 입금
-        premium = roundStrikeData[currentRound][strikeIndex].optionPrice * amount / DEFAULT_PRECISION;
+        premium = _calculatePremium(roundStrikeData[currentRound][strikeIndex].optionPrice, amount);
         collateralToken.transferFrom(msg.sender, address(this), premium * 1e6 / 1e18);
 
         // roundStrikeData 업데이트
@@ -305,6 +305,10 @@ contract DovForTest is
     function _validate(bool _condition) private pure {
         require(_condition, "DOV: condition doesn't match");
     }
+    function _calculatePremium(uint optionPrice, uint amount) public view returns(uint premium) {
+        premium = optionPrice * amount / DEFAULT_PRECISION;
+    }
+
 
 
     /* Status functions */
