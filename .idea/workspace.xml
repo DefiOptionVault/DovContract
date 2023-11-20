@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ab5127fe-e2c6-4e55-8ca8-04b827568e7e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/DovForTest.sol" beforeDir="false" afterPath="$PROJECT_DIR$/src/DovForTest.sol" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/DovReceiptERC20.sol" beforeDir="false" afterPath="$PROJECT_DIR$/src/DovReceiptERC20.sol" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/DovState.sol" beforeDir="false" afterPath="$PROJECT_DIR$/src/DovState.sol" afterDir="false" />
-    </list>
+    <list default="true" id="ab5127fe-e2c6-4e55-8ca8-04b827568e7e" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -63,6 +58,7 @@
       <workItem from="1699803045047" duration="339000" />
       <workItem from="1699854430506" duration="2000" />
       <workItem from="1699967249230" duration="164000" />
+      <workItem from="1699971912529" duration="792000" />
     </task>
     <servers />
   </component>

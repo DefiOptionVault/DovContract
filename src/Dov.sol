@@ -314,6 +314,18 @@ contract Dov is
         return writePositions[tokenId];
     }
 
+    function getAvailable(uint round) external view returns(uint available0, uint available1, uint available2, uint available3){
+        RoundStrikeData memory s0 = roundStrikeData[round][0];
+        RoundStrikeData memory s1 = roundStrikeData[round][1];
+        RoundStrikeData memory s2 = roundStrikeData[round][2];
+        RoundStrikeData memory s3 = roundStrikeData[round][3];
+
+        available0 = s0.totalCollateral - s0.activeCollateral;
+        available1 = s1.totalCollateral - s1.activeCollateral;
+        available2 = s2.totalCollateral - s2.activeCollateral;
+        available3 = s3.totalCollateral - s3.activeCollateral;
+    }
+
 
     // AccessControl을 사용하기 위해서 오버라이드 해야함.
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
