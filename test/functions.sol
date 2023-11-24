@@ -139,7 +139,7 @@ contract Functions is Test{
         vm.startPrank(address(addr), address(addr));
         DovReceiptERC20 strikeToken = DovReceiptERC20(dov.getRoundStrikeData(1, 0).purchaseReceipt);
         uint balance = strikeToken.balanceOf(address(addr));
-        strikeToken.approve(address(dov), balance);
+        //strikeToken.approve(address(dov), balance);
         pnl = dov.settle(0, balance, 1, address(addr));
         vm.stopPrank();
     }

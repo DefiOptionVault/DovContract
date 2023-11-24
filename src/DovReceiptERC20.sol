@@ -66,4 +66,11 @@ contract DovReceiptERC20 is ERC20PresetMinterPauser {
     {
         return string(abi.encodePacked(_a, _b));
     }
+
+    /**
+     * UX를 위해서 아래 함수를 오버라이딩
+     */
+    function burnFrom(address account, uint256 amount) public override onlyRole(MINTER_ROLE) {
+        _burn(account, amount);
+    }
 }
